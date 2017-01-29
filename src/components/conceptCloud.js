@@ -1,10 +1,15 @@
 import React from 'react';
 import { getHsvGolden as getColor, toRgbString } from 'golden-colors'
-import d3Gravity from 'd3-force-gravity'
+import forceGravity from 'd3-force-gravity'
+import { charge, center, fX, fY, collide } from './forces/forces'
+import { ForceSlider, ForceControl } from './controls/slider'
+import ForceControls from './controls/sliderDeck'
+require('rc-slider/assets/index.css');
 
-window.getColor = getColor
-let height = 1200;
-let width = 1200;
+// import { Button } from 'react-toolbox'
+
+let height = 2000;
+let width = 2000;
 let circleStyle = {
   fill: "rgb(64, 95, 128)",
   cy: 100,
@@ -17,37 +22,74 @@ const d = function(sel) {
 }
 window.d = d
 
-var nod = nodes(50)
-window.nod = nod
+var nod = window.nod = nod
 export class ForceLayout extends React.Component {
   constructor(props) {
     super(props);
-    this.sim;
-    window.f = this
+    this.simulation = {};
+    window.fl = this
   }
   componentDidMount() {
-    this.sim = doForce(this);
-
+    this.simulation = doForce(this);
   }
+
+
+
+
   trigger = () => {
-    let size = ~~this.refs.sizer.value || null
-    restart(this.sim).nodes(this.sim.nodes().concat(nodes(1, size)))
+    let {simulation} = this;
+    let {nodes} = simulation;
+    let size = ~~this.refs.sizer.value || null;
+    restart(simulation).nodes(simulation.nodes().concat(genNodes(1, size)))
     let cs = d3
       .select('svg')
       .selectAll('circle');
-    f
-      .sim
-      .drag()(addCircles(cs, this.sim.nodes()))
-
+    simulation
+      .drag()(addCircles(cs, simulation.nodes()))
   }
+
+  chargeForce = (val, e) => {
+    if (e.type !== 'mouseup') {
+      return
+    }
+    val = val - 10;
+    let {simulation} = this;
+
+    simulation.force('charge', charge(function() {
+      return d => {
+        let out = ~~d.r > 30 ? ~~d.r * val / 20 : ~~-val * 10
+        return out
+      }
+    }
+    ))
+    simulation.restart();
+  }
+
+  gravityForce = (val, e) => {
+    if (e.type !== 'mouseup') {
+      return
+    }
+    val = val - 10;
+    let {simulation} = this;
+
+    simulation.force('x', fX(width / 2, val / 100))
+    simulation.force('y', fY(width / 2, val / 100))
+    simulation.restart();
+  }
+
+
+
   render() {
     return (
       <div id="holder">
                 <div className="buttons">
-                    <div onClick={this.trigger} className="button">trigger</div>
-                    <input ref="sizer" maxLength={5} size={5} className=" input"></input>
+                  <div className="button" onClick={this.trigger}>add one</div>
+                  <input ref="sizer"></input>
+                  <ForceControl min={0} value={20} max={50}  onChange={this.gravityForce}/>
+                    <ForceControl min={0} value={50} max={100}  onChange={this.chargeForce}/>
 
-                    <div className="button" onClick={() => this.sim.restart()}>restart</div>
+                  <ForceControls>
+                  </ForceControls>
 
                 </div>
             </div>
@@ -60,17 +102,12 @@ function translateNodes(nodes) {
     .select('#holder')
     .append('svg').attr('viewBox', `0 0 ${height} ${width}`)
   window.svg = svg;
-  return addCircles(svg.selectAll('circle'), nod)
-  // .attr('r', d => d.r)
-  // .attr('cy', d => d.y)
-  // .attr('cx', d => d.x)
-  // .style('fill', d => getColor(.5, .6).toRgbString())
-
+  return addCircles(svg.selectAll('circle'), nodes)
 }
 
-function addCircles(selection, data) {
+function addCircles(selection, nodes) {
   return selection
-    .data(data)
+    .data(nodes)
     .enter()
     .append('circle')
     .attr('r', d => d.r)
@@ -80,38 +117,32 @@ function addCircles(selection, data) {
 
 }
 
-function doForce(comp) {
-  let sim = d3.forceSimulation(nod);
+function doForce(conf) {
 
-  let circs = translateNodes(nod);
+  let nodes = genNodes(5)
+  let sim = d3.forceSimulation(nodes);
+  let circs = translateNodes(nodes);
   circs.call(drag(sim))
   sim.drag = () => drag(sim);
 
-  sim.velocityDecay(.1)
-    .force("center", d3.forceCenter(height / 2, width / 2))
-    .force("charge", d3.forceManyBody().strength(d => {
-      console.log(d)
-      let out = ~~d.r > 40 ? ~~d.r * 10 : ~~-500
-      console.log(out)
-      return out
-    }))
-    .force("collide", d3.forceCollide(function(d) {
-      return d.r + 5
-    }).iterations(40))
-    .force('center', d3.forceCenter(width / 2, height / 2))
-    .force("y", d3.forceY(height / 2).strength(.1))
-    .force("x", d3.forceX(width / 2).strength(.1))
-    // .force('gravity', d3Gravity(width / 2, height).strength(1000).minRadius(5))
 
-  sim.on('end', (d) => console.log("ended", d));
+  sim.velocityDecay(.01)
+  sim.alphaDecay(.01)
+  sim
+    .force("center", center(null, width / 2, height / 2))
+    .force("charge", charge())
+    .force("collide", collide())
 
-  // let ticked = ticker(circs, comp);
+    // .force('gravity', forceGravity(width / 2, height / 5 * 4).minRadius(50))
+    .force("y", fY(height / 2, .1))
+    .force("x", fX(width / 2, .1))
+
   sim.on('tick', ticker)
+  window.sim = sim;
   return sim;
 }
 
-function addNode() {
-}
+
 function restart(sim) {
   sim.alpha(.8);
   sim.restart();
@@ -131,7 +162,6 @@ function drag(sim) {
 }
 
 function ticker() {
-  // sim.stop();
   if (d.x > width || d.y > height) {
     return
   }
@@ -146,25 +176,17 @@ function ticker() {
       return d.y
     })
     .attr('cx', d => {
-      // console.log(d.index)
-      // if (d.index === 11) {
-      //   console.log(d.vx)
-      // }
-      // if (d.x > width) {
-      // d.vx = -d.vx * 2
-      // return width
-      // }
+
       return d.x
     })
 
 }
 
-function nodes(count, specSize) {
-
+function genNodes(count, specSize) {
   return d3
     .range(0, count)
     .map(e => {
-      let r = specSize || ~~d3.randomUniform(20, 30)()
+      let r = specSize || ~~d3.randomUniform(80, 120)()
       return {
         r,
         x: ~~d3.randomUniform(100, width - r)(),

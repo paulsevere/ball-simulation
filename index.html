@@ -1,136 +1,167 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-<title>D3 v4 - force layout</title>
-<style>
-html, body, #graph {
-    width: 100vw;
-    height: 100vh;
-}
-</style>
-</head>
 
-<body>
-<div id="graph"></div>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>D3 v4 - force layout</title>
+        <style>
+            html,
+            body,
+            #graph {
+                width: 100vw;
+                height: 100vh;
+            }
+        </style>
+    </head>
 
-
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.1/d3.js"></script>
-<script>
-!(function(){
-    "use strict"
-
-    var width,height
-    var chartWidth, chartHeight
-    var margin
-    var svg = d3.select("#graph").append("svg")
-    var chartLayer = svg.append("g").classed("chartLayer", true)
-
-    main()
-
-    function main() {
-        var range = 20
-        var data = {
-            nodes:[{label:"big", r:100}],
-            links:d3.range(0, range).map(function(){ return {source:~~d3.randomUniform(range)(), target:~~d3.randomUniform(range)()} })
-        }
-        data.nodes = data.nodes.concat(d3.range(0, range).map(function(d){ return {label: "l"+d ,r:~~d3.randomUniform(10, 60)()}}))
-        console.log(data.nodes)
-        setSize(data)
-        drawChart(data)
-    }
-
-    function setSize(data) {
-        width = document.querySelector("#graph").clientWidth
-        height = document.querySelector("#graph").clientHeight
-
-        margin = {top:0, left:0, bottom:0, right:0 }
+    <body>
+        <div id="graph"></div>
 
 
-        chartWidth = width - (margin.left+margin.right)
-        chartHeight = height - (margin.top+margin.bottom)
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.blue_grey-teal.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.min.js"></script>
+        <script>
+            < script src = "https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.1/d3.js" >
+        </script>
+        <script>
+            !(function() {
+                "use strict"
 
-        svg.attr("width", width).attr("height", height)
+                var width, height
+                var chartWidth, chartHeight
+                var margin
+                var svg = d3.select("#graph").append("svg")
+                var chartLayer = svg.append("g").classed("chartLayer", true)
+
+                main()
+
+                function main() {
+                    var range = 20
+                    var data = {
+                        nodes: [{
+                            label: "big",
+                            r: 100
+                        }],
+                        links: d3.range(0, range).map(function() {
+                            return {
+                                source: ~~d3.randomUniform(range)(),
+                                target: ~~d3.randomUniform(range)()
+                            }
+                        })
+                    }
+                    data.nodes = data.nodes.concat(d3.range(0, range).map(function(d) {
+                        return {
+                            label: "l" + d,
+                            r: ~~d3.randomUniform(10, 60)()
+                        }
+                    }))
+                    console.log(data.nodes)
+                    setSize(data)
+                    drawChart(data)
+                }
+
+                function setSize(data) {
+                    width = document.querySelector("#graph").clientWidth
+                    height = document.querySelector("#graph").clientHeight
+
+                    margin = {
+                        top: 0,
+                        left: 0,
+                        bottom: 0,
+                        right: 0
+                    }
 
 
-        chartLayer
-            .attr("width", chartWidth)
-            .attr("height", chartHeight)
-            .attr("transform", "translate("+[margin.left, margin.top]+")")
+                    chartWidth = width - (margin.left + margin.right)
+                    chartHeight = height - (margin.top + margin.bottom)
+
+                    svg.attr("width", width).attr("height", height)
 
 
-    }
-
-    function drawChart(data) {
-
-        var simulation = d3.forceSimulation()
-            // .force("link", d3.forceLink().id(function(d) { return d.index }))
-            .force("collide",d3.forceCollide( function(d){return d.r }).iterations(100).strength(0))
-            .force("center", d3.forceCenter(chartWidth / 2, chartWidth / 2))
-
-            .force("charge", d3.forceManyBody().strength(-20))
-            // .force("y", d3.forceY(height/2).strength(.1))
-            // .force("x", d3.forceX(width/2).stength(.5))
-
-            // .force("x", d3.forceX(width/2).strength(.1))
+                    chartLayer
+                        .attr("width", chartWidth)
+                        .attr("height", chartHeight)
+                        .attr("transform", "translate(" + [margin.left, margin.top] + ")")
 
 
+                }
 
-        var node = svg.append("g")
-            .attr("class", "nodes")
-            .selectAll("circle")
-            .data(data.nodes)
-            .enter().append("circle")
-            .attr("r", function(d){  return d.r })
-            .call(d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended));
+                function drawChart(data) {
 
+                    var simulation = d3.forceSimulation()
+                        // .force("link", d3.forceLink().id(function(d) { return d.index }))
+                        .force("collide", d3.forceCollide(function(d) {
+                            return d.r
+                        }).iterations(100).strength(0))
+                        .force("center", d3.forceCenter(chartWidth / 2, chartWidth / 2))
 
-        var ticked = function() {
+                        .force("charge", d3.forceManyBody().strength(-20))
+                    // .force("y", d3.forceY(height/2).strength(.1))
+                    // .force("x", d3.forceX(width/2).stength(.5))
 
-            node
-                .attr("cx", function(d) { return d.x; })
-                .attr("cy", function(d) { return d.y; });
-        }
-
-        simulation
-            .nodes(data.nodes)
-            .alpha(.1)
-            .on("tick", ticked);
-
-        // simulation.force("link")
-        //     .links(data.links);
+                    // .force("x", d3.forceX(width/2).strength(.1))
 
 
 
-        function dragstarted(d) {
-            if (!d3.event.active) simulation.alphaTarget(.8).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        }
-
-        function dragged(d) {
-            d.fx = d3.event.x;
-            d.fy = d3.event.y;
-        }
-
-        function dragended(d) {
-            if (!d3.event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-        }
-
-    }
-}());
-d3.selectAll('circle').style("fill",function(d) {
-    return `hsla(${200 - d.r }, 30%, 50%, 1)`
-    })
+                    var node = svg.append("g")
+                        .attr("class", "nodes")
+                        .selectAll("circle")
+                        .data(data.nodes)
+                        .enter().append("circle")
+                        .attr("r", function(d) {
+                            return d.r
+                        })
+                        .call(d3.drag()
+                            .on("start", dragstarted)
+                            .on("drag", dragged)
+                            .on("end", dragended));
 
 
-</script>
-</body>
+                    var ticked = function() {
+
+                        node
+                            .attr("cx", function(d) {
+                                return d.x;
+                            })
+                            .attr("cy", function(d) {
+                                return d.y;
+                            });
+                    }
+
+                    simulation
+                        .nodes(data.nodes)
+                        .alpha(.1)
+                        .on("tick", ticked);
+
+                    // simulation.force("link")
+                    //     .links(data.links);
+
+
+
+                    function dragstarted(d) {
+                        if (!d3.event.active) simulation.alphaTarget(.8).restart();
+                        d.fx = d.x;
+                        d.fy = d.y;
+                    }
+
+                    function dragged(d) {
+                        d.fx = d3.event.x;
+                        d.fy = d3.event.y;
+                    }
+
+                    function dragended(d) {
+                        if (!d3.event.active) simulation.alphaTarget(0);
+                        d.fx = null;
+                        d.fy = null;
+                    }
+
+                }
+            }());
+            d3.selectAll('circle').style("fill", function(d) {
+                return `hsla(${200 - d.r }, 30%, 50%, 1)`
+            })
+        </script>
+    </body>
+
 </html>
