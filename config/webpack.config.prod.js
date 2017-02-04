@@ -8,8 +8,6 @@ var url = require('url');
 var paths = require('./paths');
 var getClientEnvironment = require('./env');
 
-
-
 function ensureSlash(path, needsSlash) {
   var hasSlash = path.endsWith('/');
   if (hasSlash && !needsSlash) {
@@ -27,7 +25,9 @@ function ensureSlash(path, needsSlash) {
 // We can't use a relative path in HTML because we don't want to load something
 // like /todos/42/static/js/bundle.7289d.js. We have to know the root.
 var homepagePath = require(paths.appPackageJson).homepage;
-var homepagePathname = homepagePath ? url.parse(homepagePath).pathname : '/';
+var homepagePathname = homepagePath
+  ? url.parse(homepagePath).pathname
+  : '/';
 // Webpack uses `publicPath` to determine where the app is being served from.
 // It requires a trailing slash, or the file assets will get an incorrect path.
 var publicPath = ensureSlash(homepagePathname, true);
@@ -55,8 +55,7 @@ module.exports = {
   devtool: 'source-map',
   // In production, we only want to load the polyfills and the app code.
   entry: [
-    require.resolve('./polyfills'),
-    paths.appIndexJs
+    require.resolve('./polyfills'), paths.appIndexJs
   ],
   output: {
     // The build folder.
@@ -80,24 +79,20 @@ module.exports = {
     // We also include JSX as a common component filename extension to support
     // some tools, although we do not recommend using it, see:
     // https://github.com/facebookincubator/create-react-app/issues/290
-    extensions: ['.js', '.json', '.jsx', ''],
+    extensions: [
+      '.js', '.json', '.jsx', ''
+    ],
     alias: {
       // Support React Native Web
       // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
       'react-native': 'react-native-web'
     }
   },
-  
+
   module: {
     // First, run the linter.
     // It's important to do this before Babel processes the JS.
-    preLoaders: [
-      {
-        test: /\.(js|jsx)$/,
-        loader: 'eslint',
-        include: paths.appSrc
-      }
-    ],
+
     loaders: [
       // Default loader: load all assets that are not handled
       // by other loaders with the url loader.
@@ -113,11 +108,7 @@ module.exports = {
       // assets smaller than specified size as data URLs to avoid requests.
       {
         exclude: [
-          /\.html$/,
-          /\.(js|jsx)$/,
-          /\.css$/,
-          /\.json$/,
-          /\.svg$/
+          /\.html$/, /\.(js|jsx)$/, /\.css$/, /\.json$/, /\.svg$/
         ],
         loader: 'url',
         query: {
@@ -129,8 +120,7 @@ module.exports = {
       {
         test: /\.(js|jsx)$/,
         include: paths.appSrc,
-        loader: 'babel',
-        
+        loader: 'babel'
       },
       // The notation here is somewhat confusing.
       // "postcss" loader applies autoprefixer to our CSS.
@@ -165,28 +155,22 @@ module.exports = {
       }
     ]
   },
-  
+
   // We use PostCSS for autoprefixing only.
   postcss: function() {
-    return [
-      autoprefixer({
+    return [autoprefixer({
         browsers: [
-          '>1%',
-          'last 4 versions',
-          'Firefox ESR',
-          'not ie < 9', // React doesn't support IE8 anyway
+          '>1%', 'last 4 versions', 'Firefox ESR', 'not ie < 9', // React doesn't support IE8 anyway
         ]
-      }),
-    ];
+      })];
   },
   plugins: [
+    new webpack.ProvidePlugin({d3: 'd3', $: 'jquery'}),
     // Makes the public URL available as %PUBLIC_URL% in index.html, e.g.:
     // <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
     // In production, it will be an empty string unless you specify "homepage"
     // in `package.json`, in which case it will be the pathname of that URL.
-    new InterpolateHtmlPlugin({
-      PUBLIC_URL: publicUrl
-    }),
+    new InterpolateHtmlPlugin({PUBLIC_URL: publicUrl}),
     // Generates an `index.html` file with the <script> injected.
     new HtmlWebpackPlugin({
       inject: true,
@@ -232,9 +216,7 @@ module.exports = {
     // Generate a manifest file which contains a mapping of all asset filenames
     // to their corresponding output file so that tools can pick it up without
     // having to parse `index.html`.
-    new ManifestPlugin({
-      fileName: 'asset-manifest.json'
-    })
+    new ManifestPlugin({fileName: 'asset-manifest.json'})
   ],
   // Some libraries import Node modules but don't use them in the browser.
   // Tell Webpack to provide empty mocks for them so importing them works.

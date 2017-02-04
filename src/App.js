@@ -1,10 +1,12 @@
-import React, { Component } from 'react';
-import './components/base'
-// import {Circles} from './components/circles'
+import React, {Component} from 'react';
+import Theme from './components/controls/theme'
 import * as Force from './components/conceptCloud'
 import './App.css';
-import './Md.scss'
 import * as t from './transformations/index'
+import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -24,10 +26,13 @@ class App extends Component {
       }
     }
     return (
-      <div className="App">
-                <Force.ForceLayout/>
-            </div>
-      );
+      <MuiThemeProvider muiTheme={getMuiTheme(Theme)}>
+        <div className="App">
+          <Force.ForceLayout/>
+        </div>
+      </MuiThemeProvider>
+
+    );
   }
 }
 
