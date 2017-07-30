@@ -8,7 +8,7 @@ export function addCircles(selection, nodes) {
     .attr("r", d => d.r)
     .attr("cy", d => d.y)
     .attr("cx", d => d.x)
-    .style("fill", d => getColor(0.6, 0.9).toRgbString());
+    .style("fill", d => getColor(0.55, 0.9).toRgbString());
 }
 
 d3.addCircles = addCircles;

@@ -12,7 +12,7 @@ export class ForceLayout extends React.Component {
     this.simulation = {};
     this.state = {
       startCount: 50,
-      startSize: parseInt(window.localStorage.getItem("startSize")) || 30,
+      startSize: parseInt(window.localStorage.getItem("startSize")) || 20,
       center: {
         on: true,
         strength: 1
